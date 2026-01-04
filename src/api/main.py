@@ -5,10 +5,7 @@ from contextlib import asynccontextmanager
 import numpy as np
 import pandas as pd
 import joblib
-from fastapi import HTTPException
-import traceback
 
-app = FastAPI(debug=True)
 
 # Global model variable
 model = None
@@ -46,7 +43,6 @@ class PredictRequest(BaseModel):
 class PredictResponse(BaseModel):
     """ Prediction response structure."""
 
-    # prediction_class: str
     prediction: str
  
 
@@ -108,30 +104,18 @@ def get_model_info() -> ModelInfo:
 
 @app.post("/predict")
 def predict(Input : PredictRequest) -> PredictResponse:
-    try:
+ 
         """ Endpoint to get predictions."""
         if model is None:
             return {"error": "Model not loaded"}
         else:
-        #model = joblib.load('jobchg_pipeline_model.pkl')
-            #data = Input.model_dump()
         
-            #X_input = pd.DataFrame([data])
-            #X_input = pd.DataFrame([data.model_dump(by_alias=True)])
             X_input = pd.DataFrame([Input.model_dump(by_alias=True)])
-            #X_input = pd.DataFrame([data.dict(by_alias=True)])
+          
             prediction = model.predict(X_input)
             result = "Can bePromoted" if prediction[0]==1 else "Not Eligible for Promotion"
             return PredictResponse(prediction=result)
-            #return {"prediction": int(prediction[0]) }  # ✅ key matches response model
-    
-            
-    except Exception as e:
-        traceback.print_exc()  # prints full error in terminal
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
-    
+           
+
 
 
