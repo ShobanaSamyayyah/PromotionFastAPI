@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from contextlib import asynccontextmanager
 
+
 import numpy as np
 import pandas as pd
 import joblib
@@ -48,7 +49,7 @@ class PredictResponse(BaseModel):
 
 def load_model():
     global model
-    model = joblib.load("promotion_LR_Imb_model.pkl")
+    model = joblib.load("XGB_Tune_0.39.pkl")
     return model
 
 
@@ -94,12 +95,12 @@ def get_model_info() -> ModelInfo:
     else:
         return ModelInfo(
                 model_name="Employee Promotion Prediction Model",
-                model_type = "Logistic Regression with hyper tuning",
+                model_type = "XGB Classifier with hyper tuning",
                 model_version = "1.0.0",
                 model_features = ['no_of_trainings', 'age', 'previous_year_rating', 'KPIs_met >80%', 'awards_won?', 'avg_training_score', 'department', 'region', 'education', 'gender','recruitment_channel'],
                 model_author = "Shobana",
-                model_description = "A logistic regression model to predict employee promotion",
-                model_f1 = 0.48
+                model_description = "A XGB Classifier model to predict employee promotion",
+                model_f1 = 0.55
             )
 
 @app.post("/predict")
@@ -111,9 +112,9 @@ def predict(Input : PredictRequest) -> PredictResponse:
         else:
         
             X_input = pd.DataFrame([Input.model_dump(by_alias=True)])
-          
-            prediction = model.predict(X_input)
-            result = "Can bePromoted" if prediction[0]==1 else "Not Eligible for Promotion"
+            probability = 1 if model.predict_proba(X_input)[0][1] >= 0.39 else 0
+            #prediction = model.predict(X_input)
+            result = "Can bePromoted" if probability==1 else "Not Eligible for Promotion"
             return PredictResponse(prediction=result)
            
 
